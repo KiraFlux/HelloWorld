@@ -1,0 +1,13 @@
+# Zig build outputs
+/.zig-out/
+/.zig-cache/
+/build.zig.zon
+
+# VS Code
+.vscode/
+!.vscode/*json
+
+# Editor swap / temp files
+*~
+*.swp
+*.swo
