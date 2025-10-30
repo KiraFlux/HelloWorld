@@ -6,7 +6,7 @@ pub fn StaticBufferStack(comptime T: type, comptime capacity: usize) type {
         top_index: usize = 0,
 
         pub fn new() Self {
-            return Self{};
+            return .{};
         }
 
         pub fn push(self: *Self, item: T) void {
