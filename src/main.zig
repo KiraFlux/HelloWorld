@@ -18,14 +18,14 @@ pub fn main() !void {
         return;
     }
 
-    const result = calculator.run(input);
+    const result = calculator.eval(input);
     print("Result: {any}\n", .{result});
 }
 
 fn launch(input: []const u8) Calculator.Number {
     var calculator = Calculator.new();
 
-    if (calculator.run(input)) |result| {
+    if (calculator.eval(input)) |result| {
         return result;
     } else |_| {
         return -999;

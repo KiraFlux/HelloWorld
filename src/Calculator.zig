@@ -3,8 +3,10 @@ const stack = @import("stack.zig");
 
 const Self = @This();
 
+/// Type of Number value
 pub const Number = i32;
 
+/// Special Stack type of Numbers
 const NumbersStack = stack.StaticBufferStack(Number, 64);
 const DigitsStack = stack.StaticBufferStack(u8, 32);
 
@@ -15,29 +17,32 @@ const Error = error{
     DivisionByZero,
 };
 
+/// Available operators
 const Operator = enum(u8) {
-    Plus = '+',
-    Minus = '-',
-    Star = '*',
-    Slash = '/',
+    Add = '+',
+    Sub = '-',
+    Mul = '*',
+    Div = '/',
 
     fn process(self: *const Operator, left: Number, right: Number) Error!Number {
         return switch (self.*) {
-            .Plus => left + right,
-            .Minus => left - right,
-            .Star => left * right,
-            .Slash => if (right == 0) Error.DivisionByZero else @divTrunc(left, right),
+            .Add => left + right,
+            .Sub => left - right,
+            .Mul => left * right,
+            .Div => if (right == 0) Error.DivisionByZero else @divTrunc(left, right),
         };
     }
 };
 
+/// Numbers
 numbers_stack: NumbersStack,
 
 pub fn new() Self {
     return Self{ .numbers_stack = NumbersStack.new() };
 }
 
-pub fn run(self: *Self, expression: []const u8) Error!Number {
+/// Eval the expression
+pub fn eval(self: *Self, expression: []const u8) Error!Number {
     var digits_stack = DigitsStack.new();
 
     for (expression, 0..) |char, i| {
@@ -57,7 +62,9 @@ pub fn run(self: *Self, expression: []const u8) Error!Number {
 
                 const op: Operator = @enumFromInt(char);
                 const result = try op.process(a, b);
+
                 self.numbers_stack.push(result);
+
                 std.debug.print("{} {c} {} = {}\n", .{ a, char, b, result });
             },
             else => {
@@ -68,7 +75,13 @@ pub fn run(self: *Self, expression: []const u8) Error!Number {
     }
     try self.processNumber(&digits_stack);
 
-    return self.numbers_stack.pop() orelse Error.NullResult;
+    const result = self.numbers_stack.pop() orelse Error.NullResult;
+
+    if (!self.numbers_stack.isEmpty()) {
+        std.debug.print("Warn: {} items not used!\n", .{self.numbers_stack.available()});
+    }
+
+    return result;
 }
 
 fn processNumber(self: *Self, digits_stack: *DigitsStack) Error!void {

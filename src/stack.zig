@@ -3,30 +3,37 @@ pub fn StaticBufferStack(comptime T: type, comptime capacity: usize) type {
         const Self = @This();
 
         buffer: [capacity]T = undefined,
-        len: usize = 0,
+        top_index: usize = 0,
 
         pub fn new() Self {
             return Self{};
         }
 
         pub fn push(self: *Self, item: T) void {
-            if (self.len >= capacity) {
+            if (self.top_index >= capacity) {
                 @panic("Stack overflow");
             }
-            self.buffer[self.len] = item;
-            self.len += 1;
+
+            self.buffer[self.top_index] = item;
+            self.top_index += 1;
         }
 
         pub fn pop(self: *Self) ?T {
-            if (self.len == 0) {
+            if (self.isEmpty()) {
                 return null;
             }
-            self.len -= 1;
-            return self.buffer[self.len];
+
+            self.top_index -= 1;
+
+            return self.buffer[self.top_index];
         }
 
         pub fn isEmpty(self: *Self) bool {
-            return self.len == 0;
+            return self.top_index == 0;
+        }
+
+        pub fn available(self: *Self) usize {
+            return self.top_index;
         }
     };
 }
