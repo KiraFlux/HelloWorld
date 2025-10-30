@@ -34,30 +34,31 @@ const Operator = enum(u8) {
 };
 
 /// Numbers
-numbers_stack: NumbersStack,
+numbers_stack: NumbersStack = NumbersStack.new(),
+accumulated_number: ?Number = undefined,
 
 pub fn new() Self {
-    return Self{ .numbers_stack = NumbersStack.new() };
+    return .{};
 }
 
 /// Eval the expression
 pub fn eval(self: *Self, expression: []const u8) Error!Number {
-    var accumulated_number: ?Number = null;
+    self.accumulated_number = null;
 
     for (expression, 0..) |char, i| {
         switch (char) {
             '0'...'9' => {
                 const digit = char - '0';
-                if (accumulated_number == null) {
-                    accumulated_number = 0;
+                if (self.accumulated_number == null) {
+                    self.accumulated_number = 0;
                 }
-                accumulated_number.? = accumulated_number.? * 10 + digit;
+                self.accumulated_number.? = self.accumulated_number.? * 10 + digit;
             },
             ' ' => {
-                try self.processNumber(&accumulated_number);
+                self.processNumber();
             },
             '+', '-', '*', '/' => {
-                try self.processNumber(&accumulated_number);
+                self.processNumber();
 
                 const b = self.numbers_stack.pop() orelse return Error.NullArg;
                 const a = self.numbers_stack.pop() orelse return Error.NullArg;
@@ -75,7 +76,7 @@ pub fn eval(self: *Self, expression: []const u8) Error!Number {
             },
         }
     }
-    try self.processNumber(&accumulated_number);
+    self.processNumber();
 
     const result = self.numbers_stack.pop() orelse Error.NullResult;
 
@@ -86,9 +87,9 @@ pub fn eval(self: *Self, expression: []const u8) Error!Number {
     return result;
 }
 
-fn processNumber(self: *Self, maybe_number: *?Number) Error!void {
-    if (maybe_number.*) |number| {
+fn processNumber(self: *Self) void {
+    if (self.accumulated_number) |number| {
         self.numbers_stack.push(number);
-        maybe_number.* = null;
+        self.accumulated_number = null;
     }
 }
