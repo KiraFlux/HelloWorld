@@ -1,19 +1,18 @@
 const std = @import("std");
-const print = std.debug.print;
 
 const Self = @This();
 
-pub const Value = i32;
+const Value = i32;
 
-pub const Operator = enum(u8) {
+const Operator = enum(u8) {
     Plus = '+',
     Minus = '-',
     Star = '*',
     Slash = '/',
 };
 
-pub const Error = error{
-    Generic,
+const Error = error{
+    NullResult,
     NullArg,
     InvalidChar,
 };
@@ -26,12 +25,25 @@ pub fn init(self: *Self) void {
 }
 
 pub fn run(self: *Self, expression: []u8) Error!Value {
+    var digits_stack_buffer: [16]u8 = undefined;
+    var digits_stask = std.ArrayList(u8).initBuffer(&digits_stack_buffer);
+
     for (expression, 0..) |char, i| {
         switch (char) {
-            ' ' => {},
+            ' ' => {
+                var number: Value = 0;
+                var power: i32 = 1;
+
+                while (digits_stask.pop()) |digit| {
+                    number += digit * power;
+                    power *= 10;
+                }
+
+                self.value_stack.appendAssumeCapacity(number);
+            },
 
             '0'...'9' => {
-                self.value_stack.appendAssumeCapacity(char - '0');
+                digits_stask.appendAssumeCapacity(char - '0');
             },
 
             @intFromEnum(Operator.Plus), @intFromEnum(Operator.Minus), @intFromEnum(Operator.Star), @intFromEnum(Operator.Slash) => {
@@ -47,13 +59,17 @@ pub fn run(self: *Self, expression: []u8) Error!Value {
             },
 
             else => {
-                print("Unknown char '{c}' at {}\n", .{ char, i });
+                std.debug.print("Unknown char '{c}' at {}\n", .{ char, i });
                 return Error.InvalidChar;
             },
         }
     }
 
-    return self.value_stack.getLastOrNull() orelse 0;
+    if (self.value_stack.getLastOrNull()) |result| {
+        return result;
+    } else {
+        return Error.NullResult;
+    }
 }
 
 fn processOperation(operation: Operator, a: Value, b: Value) Error!Value {
