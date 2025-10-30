@@ -1,5 +1,5 @@
 # Zig build outputs
-/.zig-out/
+/zig-out/
 /.zig-cache/
 /build.zig.zon
 
