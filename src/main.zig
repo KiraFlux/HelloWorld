@@ -22,12 +22,24 @@ pub fn main() !void {
     print("Result: {any}\n", .{result});
 }
 
-test "calc test" {
+fn launch(input: []const u8) Calculator.Number {
     var calculator = Calculator.new();
 
-    const input: [] const u8 = "10        10*   44       +";
-    const result = try calculator.run(input);
-    print("Result: {any}\n", .{result});
+    if (calculator.run(input)) |result| {
+        return result;
+    } else |_| {
+        return -999;
+    }
+}
 
-    std.debug.assert(result == 144);
+test "calc test 1" {
+    std.debug.assert(launch("10        10*   44       +") == 144);
+}
+
+test "calc test 2" {
+    std.debug.assert(launch("1 2 + 3 *") == 9);
+}
+
+test "calc test 3" {
+    std.debug.assert(launch("20 5 * 4 /") == 25);
 }

@@ -3,7 +3,7 @@ const stack = @import("stack.zig");
 
 const Self = @This();
 
-const Number = i32;
+pub const Number = i32;
 
 const NumbersStack = stack.StaticBufferStack(Number, 64);
 const DigitsStack = stack.StaticBufferStack(u8, 32);
