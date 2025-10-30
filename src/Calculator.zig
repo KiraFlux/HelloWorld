@@ -48,27 +48,14 @@ pub fn eval(self: *Self, expression: []const u8) Error!Number {
     for (expression, 0..) |char, i| {
         switch (char) {
             '0'...'9' => {
-                const digit = char - '0';
-                if (self.accumulated_number == null) {
-                    self.accumulated_number = 0;
-                }
-                self.accumulated_number.? = self.accumulated_number.? * 10 + digit;
+                self.onDigit(char);
             },
             ' ' => {
-                self.processNumber();
+                self.onNonDigit();
             },
             '+', '-', '*', '/' => {
-                self.processNumber();
-
-                const b = self.numbers_stack.pop() orelse return Error.NullArg;
-                const a = self.numbers_stack.pop() orelse return Error.NullArg;
-
-                const op: Operator = @enumFromInt(char);
-                const result = try op.process(a, b);
-
-                self.numbers_stack.push(result);
-
-                std.debug.print("{} {c} {} = {}\n", .{ a, char, b, result });
+                self.onNonDigit();
+                try self.onBinaryOperator(@enumFromInt(char));
             },
             else => {
                 std.debug.print("Unknown char '{c}' at {}\n", .{ char, i });
@@ -76,20 +63,43 @@ pub fn eval(self: *Self, expression: []const u8) Error!Number {
             },
         }
     }
-    self.processNumber();
+    self.onNonDigit();
 
     const result = self.numbers_stack.pop() orelse Error.NullResult;
 
     if (!self.numbers_stack.isEmpty()) {
-        std.debug.print("Warn: {} items not used!\n", .{self.numbers_stack.available()});
+        std.debug.print("Warning! {} numbers not used!\n", .{self.numbers_stack.available()});
     }
 
     return result;
 }
 
-fn processNumber(self: *Self) void {
+fn toDigit(char: u8) u8 {
+    return char - '0';
+}
+
+fn onDigit(self: *Self, char: u8) void {
+    const base = 10;
+
+    if (self.accumulated_number == null) {
+        self.accumulated_number = 0;
+    }
+    self.accumulated_number.? = self.accumulated_number.? * base + toDigit(char);
+}
+
+fn onNonDigit(self: *Self) void {
     if (self.accumulated_number) |number| {
         self.numbers_stack.push(number);
         self.accumulated_number = null;
     }
+}
+
+fn onBinaryOperator(self: *Self, operator: Operator) Error!void {
+    const right = self.numbers_stack.pop() orelse return Error.NullArg;
+    const left = self.numbers_stack.pop() orelse return Error.NullArg;
+    const result = try operator.process(left, right);
+
+    self.numbers_stack.push(result);
+
+    std.debug.print("{} {c} {} = {}\n", .{ left, @intFromEnum(operator), right, result });
 }
