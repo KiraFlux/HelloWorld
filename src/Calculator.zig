@@ -8,18 +8,27 @@ const Number = i32;
 const NumbersStack = stack.StaticBufferStack(Number, 64);
 const DigitsStack = stack.StaticBufferStack(u8, 32);
 
-const Operator = enum(u8) {
-    Plus = '+',
-    Minus = '-',
-    Star = '*',
-    Slash = '/',
-};
-
 const Error = error{
     NullResult,
     NullArg,
     InvalidChar,
     DivisionByZero,
+};
+
+const Operator = enum(u8) {
+    Plus = '+',
+    Minus = '-',
+    Star = '*',
+    Slash = '/',
+
+    fn process(self: *const Operator, left: Number, right: Number) Error!Number {
+        return switch (self.*) {
+            .Plus => left + right,
+            .Minus => left - right,
+            .Star => left * right,
+            .Slash => if (right == 0) Error.DivisionByZero else @divTrunc(left, right),
+        };
+    }
 };
 
 numbers_stack: NumbersStack,
@@ -47,8 +56,9 @@ pub fn run(self: *Self, expression: []const u8) Error!Number {
                 const a = self.numbers_stack.pop() orelse return Error.NullArg;
 
                 const op: Operator = @enumFromInt(char);
-                const result = try processOperation(op, a, b);
+                const result = try op.process(a, b);
                 self.numbers_stack.push(result);
+                std.debug.print("{} {c} {} = {}\n", .{ a, char, b, result });
             },
             else => {
                 std.debug.print("Unknown char '{c}' at {}\n", .{ char, i });
@@ -85,14 +95,4 @@ fn parseNumber(digits_stack: *DigitsStack) Error!Number {
     }
 
     return number;
-}
-
-// todo move to Operation Method
-fn processOperation(operation: Operator, a: Number, b: Number) Error!Number {
-    return switch (operation) {
-        Operator.Plus => a + b,
-        Operator.Minus => a - b,
-        Operator.Star => a * b,
-        Operator.Slash => if (b == 0) Error.DivisionByZero else @divTrunc(a, b),
-    };
 }
