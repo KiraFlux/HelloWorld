@@ -25,9 +25,9 @@ pub fn main() !void {
 test "calc test" {
     var calculator = Calculator.new();
 
-    const input: [] const u8 = "123 123 +";
+    const input: [] const u8 = "10        10*   44       +";
     const result = try calculator.run(input);
     print("Result: {any}\n", .{result});
 
-    std.debug.assert(result == 246);
+    std.debug.assert(result == 144);
 }
