@@ -6,12 +6,12 @@ const Self = @This();
 /// Type of Number value
 pub const Number = i32;
 
-/// Special Stack type of Numbers
-const NumbersStack = stack.StaticBufferStack(Number, 64);
-
-const Error = error{
+pub const Error = error{
+    /// Cannot Read Result from Numbers Stack
     NullResult,
+    /// Cannot Read one of Operator Args
     NullArg,
+    /// Unknown Char in expr
     InvalidChar,
     DivisionByZero,
 };
@@ -33,6 +33,8 @@ const Operator = enum(u8) {
     }
 };
 
+/// Special Stack type of Numbers
+const NumbersStack = stack.StaticBufferStack(Number, 64);
 /// Numbers
 numbers_stack: NumbersStack = NumbersStack.new(),
 accumulated_number: ?Number = undefined,

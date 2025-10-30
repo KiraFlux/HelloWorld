@@ -1,6 +1,6 @@
 const std = @import("std");
-
 const print = std.debug.print;
+const assert = std.debug.assert;
 
 const Calculator = @import("Calculator.zig");
 
@@ -22,24 +22,47 @@ pub fn main() !void {
     print("Result: {any}\n", .{result});
 }
 
-fn launch(input: []const u8) Calculator.Number {
+fn launch(input: []const u8) Calculator.Error!Calculator.Number {
     var calculator = Calculator.new();
+    return calculator.eval(input);
+}
 
-    if (calculator.eval(input)) |result| {
+fn launchNoError(input: []const u8) Calculator.Number {
+    if (launch(input)) |result| {
         return result;
     } else |_| {
-        return -999;
+        return -696969;
     }
 }
 
-test "calc test 1" {
-    std.debug.assert(launch("10        10*   44       +") == 144);
+test "Calculator.Error.DivisionByZero" {
+    assert(launch("1 0 /") == Calculator.Error.DivisionByZero);
 }
 
-test "calc test 2" {
-    std.debug.assert(launch("1 2 + 3 *") == 9);
+test "Calculator.Error.NullArg" {
+    assert(launch("1 +") == Calculator.Error.NullArg);
 }
 
-test "calc test 3" {
-    std.debug.assert(launch("20 5 * 4 /") == 25);
+test "Calculator.Error.InvalidChar" {
+    assert(launch("omuamua") == Calculator.Error.InvalidChar);
+}
+
+test "Calculator.Error.NullResult" {
+    assert(launch("") == Calculator.Error.NullResult);
+}
+
+test "single" {
+    assert(launchNoError("420") == 420);
+}
+
+test "1" {
+    assert(launchNoError("10        10*   44       +") == 144);
+}
+
+test "2" {
+    assert(launchNoError("1 2 + 3 *") == 9);
+}
+
+test "3" {
+    assert(launchNoError("20 5 * 4 /") == 25);
 }
