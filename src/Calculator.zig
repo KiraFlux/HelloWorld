@@ -1,4 +1,5 @@
 const std = @import("std");
+const stack = @import("stack.zig");
 
 const Self = @This();
 
@@ -17,11 +18,10 @@ const Error = error{
     InvalidChar,
 };
 
-value_stack_buffer: [64]Value = undefined,
-value_stack: std.ArrayList(Value) = undefined,
+value_stack: stack.StaticBufferStack(Value, 64),
 
-pub fn init(self: *Self) void {
-    self.value_stack = std.ArrayList(Value).initBuffer(&self.value_stack_buffer);
+pub fn new() Self {
+    return Self{ .value_stack = stack.StaticBufferStack(Value, 64).new() };
 }
 
 pub fn run(self: *Self, expression: []u8) Error!Value {
@@ -30,7 +30,7 @@ pub fn run(self: *Self, expression: []u8) Error!Value {
 
     for (expression, 0..) |char, i| {
         switch (char) {
-            ' ' => {
+            ' ' => { // fixme: number terminates if EOF, OP, SPACE
                 var number: Value = 0;
                 var power: i32 = 1;
 
@@ -39,7 +39,7 @@ pub fn run(self: *Self, expression: []u8) Error!Value {
                     power *= 10;
                 }
 
-                self.value_stack.appendAssumeCapacity(number);
+                self.value_stack.push(number);
             },
 
             '0'...'9' => {
@@ -55,7 +55,7 @@ pub fn run(self: *Self, expression: []u8) Error!Value {
                 }
 
                 const c = try processOperation(@enumFromInt(char), a.?, b.?);
-                self.value_stack.appendAssumeCapacity(c);
+                self.value_stack.push(c);
             },
 
             else => {
@@ -65,7 +65,7 @@ pub fn run(self: *Self, expression: []u8) Error!Value {
         }
     }
 
-    if (self.value_stack.getLastOrNull()) |result| {
+    if (self.value_stack.pop()) |result| {
         return result;
     } else {
         return Error.NullResult;

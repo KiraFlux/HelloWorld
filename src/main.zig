@@ -9,8 +9,7 @@ pub fn main() !void {
     var stdin_buffer: [1024]u8 = undefined;
     var stdin_reader = stdin.reader(&stdin_buffer);
 
-    var calculator = Calculator{};
-    calculator.init();
+    var calculator = Calculator.new();
 
     const input = try stdin_reader.interface.takeDelimiterExclusive('\n');
     print("Expr: {s}\n", .{input});
