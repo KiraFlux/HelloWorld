@@ -8,7 +8,6 @@ pub const Number = i32;
 
 /// Special Stack type of Numbers
 const NumbersStack = stack.StaticBufferStack(Number, 64);
-const DigitsStack = stack.StaticBufferStack(u8, 32);
 
 const Error = error{
     NullResult,
@@ -43,19 +42,22 @@ pub fn new() Self {
 
 /// Eval the expression
 pub fn eval(self: *Self, expression: []const u8) Error!Number {
-    var digits_stack = DigitsStack.new();
+    var accumulated_number: ?Number = null;
 
     for (expression, 0..) |char, i| {
         switch (char) {
             '0'...'9' => {
                 const digit = char - '0';
-                digits_stack.push(digit);
+                if (accumulated_number == null) {
+                    accumulated_number = 0;
+                }
+                accumulated_number.? = accumulated_number.? * 10 + digit;
             },
             ' ' => {
-                try self.processNumber(&digits_stack);
+                try self.processNumber(&accumulated_number);
             },
             '+', '-', '*', '/' => {
-                try self.processNumber(&digits_stack);
+                try self.processNumber(&accumulated_number);
 
                 const b = self.numbers_stack.pop() orelse return Error.NullArg;
                 const a = self.numbers_stack.pop() orelse return Error.NullArg;
@@ -73,7 +75,7 @@ pub fn eval(self: *Self, expression: []const u8) Error!Number {
             },
         }
     }
-    try self.processNumber(&digits_stack);
+    try self.processNumber(&accumulated_number);
 
     const result = self.numbers_stack.pop() orelse Error.NullResult;
 
@@ -84,28 +86,9 @@ pub fn eval(self: *Self, expression: []const u8) Error!Number {
     return result;
 }
 
-fn processNumber(self: *Self, digits_stack: *DigitsStack) Error!void {
-    if (digits_stack.isEmpty()) {
-        return;
+fn processNumber(self: *Self, maybe_number: *?Number) Error!void {
+    if (maybe_number.*) |number| {
+        self.numbers_stack.push(number);
+        maybe_number.* = null;
     }
-
-    const number = try parseNumber(digits_stack);
-    self.numbers_stack.push(number);
-}
-
-// todo remove digits stack, use only accumulator. Bruh
-fn parseNumber(digits_stack: *DigitsStack) Error!Number {
-    var number: Number = 0;
-
-    var temp_stack = DigitsStack.new();
-
-    while (digits_stack.pop()) |digit| {
-        temp_stack.push(digit);
-    }
-
-    while (temp_stack.pop()) |digit| {
-        number = number * 10 + digit;
-    }
-
-    return number;
 }
