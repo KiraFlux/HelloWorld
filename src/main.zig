@@ -21,3 +21,13 @@ pub fn main() !void {
     const result = calculator.run(input);
     print("Result: {any}\n", .{result});
 }
+
+test "calc test" {
+    var calculator = Calculator.new();
+
+    const input: [] const u8 = "123 123 +";
+    const result = try calculator.run(input);
+    print("Result: {any}\n", .{result});
+
+    std.debug.assert(result == 246);
+}
