@@ -1,7 +1,5 @@
 const std = @import("std");
 
-const print = std.debug.print;
-
 fn echo(string: []u8) void {
     std.debug.print("-> '{s}'\n", .{string});
 }
