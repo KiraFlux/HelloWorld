@@ -14,10 +14,6 @@ pub fn main() !void {
     const input = try stdin_reader.interface.takeDelimiterExclusive('\n');
     print("Expr: {s}\n", .{input});
 
-    if (input.len < 1) {
-        return;
-    }
-
     const result = calculator.eval(input);
     print("Result: {any}\n", .{result});
 }
