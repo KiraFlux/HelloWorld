@@ -31,10 +31,10 @@ pub const Operator = enum(u8) {
 pub const IntegerBuilder = struct {
     const Self = @This();
 
-    accumulated: ?Integer = null,
+    accumulated: ?Integer,
 
     pub fn init() Self {
-        return .{};
+        return .{ .accumulated = null };
     }
 
     pub fn getAccumulated(self: *Self) ?Integer {
