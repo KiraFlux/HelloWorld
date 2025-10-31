@@ -23,8 +23,8 @@ const Operator = enum(u8) {
     mul = '*',
     div = '/',
 
-    fn process(self: *const Operator, left: Number, right: Number) !Number {
-        return switch (self.*) {
+    fn process(self: Operator, left: Number, right: Number) !Number {
+        return switch (self) {
             .add => left + right,
             .sub => left - right,
             .mul => left * right,
