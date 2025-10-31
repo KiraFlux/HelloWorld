@@ -3,7 +3,7 @@ const print = std.debug.print;
 const assert = std.debug.assert;
 
 const prelude = @import("prelude.zig");
-const Number = prelude.Number;
+const Integer = prelude.Integer;
 const Error = prelude.Error;
 
 const Calculator = @import("Calculator.zig");
@@ -14,12 +14,12 @@ pub fn main() !void {
     // var stdin_reader = stdin.reader(&stdin_buffer);
 }
 
-fn launch(input: []const u8) !Number {
+fn launch(input: []const u8) !Integer {
     var calculator = Calculator.new();
     return calculator.eval(input);
 }
 
-fn launchNoError(input: []const u8) Number {
+fn launchNoError(input: []const u8) Integer {
     if (launch(input)) |result| {
         return result;
     } else |_| {

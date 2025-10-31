@@ -1,32 +1,33 @@
 const std = @import("std");
+
 const stack = @import("stack.zig");
+
 const prelude = @import("prelude.zig");
 
-const Number = prelude.Number;
+const Integer = prelude.Integer;
 const Error = prelude.Error;
 const Operator = prelude.Operator;
+const IntegerBuilder = prelude.IntegerBuilder;
 
 const Self = @This();
 
 /// Special Stack type of Numbers
-const NumbersStack = stack.StaticBufferStack(Number, 64);
+const IntegersStack = stack.StaticBufferStack(Integer, 64);
 
 /// Numbers
-numbers_stack: NumbersStack = NumbersStack.new(),
-accumulated_number: ?Number = undefined,
+numbers_stack: IntegersStack = IntegersStack.new(),
+integer_builder: IntegerBuilder = IntegerBuilder.init(),
 
 pub fn new() Self {
     return .{};
 }
 
 /// Eval the expression
-pub fn eval(self: *Self, expression: []const u8) !Number {
-    self.accumulated_number = null;
-
+pub fn eval(self: *Self, expression: []const u8) !Integer {
     for (expression, 0..) |char, i| {
         switch (char) {
             '0'...'9' => {
-                self.onDigit(char);
+                self.integer_builder.addDigit(char);
             },
             ' ' => {
                 self.onNonDigit();
@@ -52,23 +53,9 @@ pub fn eval(self: *Self, expression: []const u8) !Number {
     return result;
 }
 
-fn toDigit(char: u8) u8 {
-    return char - '0';
-}
-
-fn onDigit(self: *Self, char: u8) void {
-    const base = 10;
-
-    if (self.accumulated_number == null) {
-        self.accumulated_number = 0;
-    }
-    self.accumulated_number.? = self.accumulated_number.? * base + toDigit(char);
-}
-
 fn onNonDigit(self: *Self) void {
-    if (self.accumulated_number) |number| {
-        self.numbers_stack.push(number);
-        self.accumulated_number = null;
+    if (self.integer_builder.getAccumulated()) |integer| {
+        self.numbers_stack.push(integer);
     }
 }
 
