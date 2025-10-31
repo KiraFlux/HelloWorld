@@ -2,28 +2,24 @@ const std = @import("std");
 const print = std.debug.print;
 const assert = std.debug.assert;
 
+const prelude = @import("prelude.zig");
+const Number = prelude.Number;
+const Error = prelude.Error;
+
 const Calculator = @import("Calculator.zig");
 
 pub fn main() !void {
-    var stdin = std.fs.File.stdin();
-    var stdin_buffer: [1024]u8 = undefined;
-    var stdin_reader = stdin.reader(&stdin_buffer);
-
-    var calculator = Calculator.new();
-
-    const input = try stdin_reader.interface.takeDelimiterExclusive('\n');
-    print("Expr: {s}\n", .{input});
-
-    const result = calculator.eval(input);
-    print("Result: {any}\n", .{result});
+    // var stdin = std.fs.File.stdin();
+    // var stdin_buffer: [1024]u8 = undefined;
+    // var stdin_reader = stdin.reader(&stdin_buffer);
 }
 
-fn launch(input: []const u8) Calculator.Error!Calculator.Number {
+fn launch(input: []const u8) !Number {
     var calculator = Calculator.new();
     return calculator.eval(input);
 }
 
-fn launchNoError(input: []const u8) Calculator.Number {
+fn launchNoError(input: []const u8) Number {
     if (launch(input)) |result| {
         return result;
     } else |_| {
@@ -31,20 +27,20 @@ fn launchNoError(input: []const u8) Calculator.Number {
     }
 }
 
-test "Calculator.Error.DivisionByZero" {
-    assert(launch("1 0 /") == Calculator.Error.DivisionByZero);
+test "Error.DivisionByZero" {
+    assert(launch("1 0 /") == Error.DivisionByZero);
 }
 
-test "Calculator.Error.NullArg" {
-    assert(launch("1 +") == Calculator.Error.NullArg);
+test "Error.NullArg" {
+    assert(launch("1 +") == Error.NullArg);
 }
 
-test "Calculator.Error.InvalidChar" {
-    assert(launch("omuamua") == Calculator.Error.InvalidChar);
+test "Error.InvalidChar" {
+    assert(launch("omuamua") == Error.InvalidChar);
 }
 
-test "Calculator.Error.NullResult" {
-    assert(launch("") == Calculator.Error.NullResult);
+test "Error.NullResult" {
+    assert(launch("") == Error.NullResult);
 }
 
 test "single" {
