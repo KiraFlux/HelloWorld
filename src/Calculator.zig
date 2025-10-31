@@ -18,23 +18,24 @@ pub const Error = error{
 
 /// Available operators
 const Operator = enum(u8) {
-    Add = '+',
-    Sub = '-',
-    Mul = '*',
-    Div = '/',
+    add = '+',
+    sub = '-',
+    mul = '*',
+    div = '/',
 
-    fn process(self: *const Operator, left: Number, right: Number) Error!Number {
+    fn process(self: *const Operator, left: Number, right: Number) !Number {
         return switch (self.*) {
-            .Add => left + right,
-            .Sub => left - right,
-            .Mul => left * right,
-            .Div => if (right == 0) Error.DivisionByZero else @divTrunc(left, right),
+            .add => left + right,
+            .sub => left - right,
+            .mul => left * right,
+            .div => if (right == 0) Error.DivisionByZero else @divTrunc(left, right),
         };
     }
 };
 
 /// Special Stack type of Numbers
 const NumbersStack = stack.StaticBufferStack(Number, 64);
+
 /// Numbers
 numbers_stack: NumbersStack = NumbersStack.new(),
 accumulated_number: ?Number = undefined,
@@ -44,7 +45,7 @@ pub fn new() Self {
 }
 
 /// Eval the expression
-pub fn eval(self: *Self, expression: []const u8) Error!Number {
+pub fn eval(self: *Self, expression: []const u8) !Number {
     self.accumulated_number = null;
 
     for (expression, 0..) |char, i| {
@@ -96,7 +97,7 @@ fn onNonDigit(self: *Self) void {
     }
 }
 
-fn onBinaryOperator(self: *Self, operator: Operator) Error!void {
+fn onBinaryOperator(self: *Self, operator: Operator) !void {
     const right = self.numbers_stack.pop() orelse return Error.NullArg;
     const left = self.numbers_stack.pop() orelse return Error.NullArg;
     const result = try operator.process(left, right);
